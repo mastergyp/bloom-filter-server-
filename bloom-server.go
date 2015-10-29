@@ -23,7 +23,7 @@ import (
 )
 
 var Config = make(map[string]string)
-var SericePort = ":1234"
+var Port = ":1234"
 type Request struct {
 	Name       string
 	Args       [][]byte
@@ -51,7 +51,7 @@ func parseRequest(conn io.ReadCloser) (*Request, error) {
 
 	// Multiline request:
 	if line[0] == '*' {
-		if _, err := fmt.Sscanf(line, "*%d\r", &argsCount); err != nil {
+		if _, err := fmt.Sscanf(line, "*%d", &argsCount); err != nil {
 			return nil, malformed("*<numberOfArguments>", line)
 		}
 		// All next lines are pairs of:
@@ -99,7 +99,7 @@ func readArgument(r *bufio.Reader) ([]byte, error) {
 		return nil, malformed("$<argumentLength>", line)
 	}
 	var argSize int
-	if _, err := fmt.Sscanf(line, "$%d\r", &argSize); err != nil {
+	if _, err := fmt.Sscanf(line, "$%d", &argSize); err != nil {
 		return nil, malformed("$<argumentSize>", line)
 	}
 
@@ -245,7 +245,7 @@ func init_sb() *dablooms.ScalingBloom {
 	filename := Config["filename"]
 	capacity, _ := strconv.Atoi(Config["capacity"])
 	error_rate, _ := strconv.ParseFloat(Config["error_rate"], 64)
-	SericePort = Config["service_port"]
+	Port = Config["service_port"]
 
 
 	_, err = os.Stat(filename)
@@ -259,8 +259,8 @@ func init_sb() *dablooms.ScalingBloom {
 func main() {
 
 	var sb *dablooms.ScalingBloom = init_sb()
-	fmt.Println("starting in", SericePort)
-	tcpAddr, err := net.ResolveTCPAddr("tcp4", SericePort)
+	fmt.Println("starting in", Port)
+	tcpAddr, err := net.ResolveTCPAddr("tcp4", Port)
 	checkError(err)
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	checkError(err)
